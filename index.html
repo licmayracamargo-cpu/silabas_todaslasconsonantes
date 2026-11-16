@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aventura Silábica: Formando Sílabas y Palabras</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;--o:#FF9800;--o2:#F57C00;--os:#FFF3E0;--g:#4CAF50;--g2:#2E7D32;--gs:#E8F5E9;--t:#263238;--w:#FFFFFF}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--os);color:var(--t);font-family:'Comic Sans MS','Trebuchet MS',sans-serif;font-size:20px;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:860px;margin:0 auto;padding:12px}
+.top{background:var(--o);border-radius:18px;padding:12px 16px;color:var(--t);box-shadow:0 5px 0 var(--o2)}
+h1{margin:0 0 8px;font-size:1.3em;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{background:var(--w);border-radius:18px;padding:4px 14px;font-weight:bold;font-size:.85em}
+.bar{height:16px;background:var(--w);border-radius:18px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--g);border-radius:18px;transition:width .5s}
+#menu{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;align-items:center}
+button{font-family:inherit;font-size:1em;font-weight:bold;border:0;border-radius:18px;padding:12px 20px;cursor:pointer;color:var(--t);box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .15s}
+button:hover:not(:disabled){transform:translateY(-2px) scale(1.05)}
+button:active:not(:disabled){animation:pop .35s}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible{outline:4px solid var(--g2);outline-offset:2px}
+.lvb{background:var(--w);padding:6px 14px;font-size:.8em}
+.lvb.cur{background:var(--g);color:var(--w)}
+.card{background:var(--w);border-radius:18px;padding:18px;margin-top:14px;border:4px solid var(--o);text-align:center;position:relative;overflow:hidden;min-height:300px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:center}
+.big{font-size:5em;line-height:1;background:var(--o);color:var(--w);border-radius:18px;padding:14px 26px;font-weight:bold;animation:pop .6s}
+.big small{display:block;font-size:.2em;font-weight:normal}
+.vow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.v{background:var(--gs);border:4px solid var(--g);font-size:2em;min-width:74px}
+.v.done{background:var(--g);color:var(--w)}
+.combo{margin:16px 0;min-height:150px}
+.eq{font-size:2.6em;font-weight:bold}
+.eq .ok{color:var(--g2);background:var(--gs);border-radius:18px;padding:0 12px}
+.em{font-size:4.5em;line-height:1.1;animation:pop .6s}
+.wd{font-size:1.8em;font-weight:bold;color:var(--o2)}
+.go{background:var(--g);color:var(--w);font-size:1.2em}
+.nm{background:var(--o);color:var(--w)}
+.q{font-size:3em;font-weight:bold;letter-spacing:2px;margin:6px 0 16px}
+.q.win{color:var(--g2);animation:pop .6s}
+.opts{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.opt{display:flex;gap:4px;align-items:center}
+.o{background:var(--os);border:4px solid var(--o);font-size:2.2em;min-width:100px}
+.o.ok{background:var(--g);border-color:var(--g2);color:var(--w)}
+.o.miss{animation:shake .5s;background:var(--o);opacity:.6}
+.ear{background:var(--gs);padding:10px 12px;font-size:1.1em}
+.star{position:absolute;font-size:2em;animation:fly 1.4s forwards;pointer-events:none}
+.foot{margin-top:12px;text-align:center}
+#rep{background:var(--g);color:var(--w);font-size:1.3em;padding:14px 26px}
+label{font-size:.7em;font-weight:bold}
+@keyframes pop{0%{transform:scale(.8)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+@keyframes fly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-160px) rotate(260deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+<h1>🧡 Aventura Silábica: Formando Sílabas y Palabras</h1>
+<div class="chips"><span class="chip" id="cl"></span><span class="chip" id="cc"></span><span class="chip" id="cp"></span></div>
+<div class="bar"><i id="bf"></i></div>
+<div id="menu"></div>
+</div>
+<main class="card" id="stage"></main>
+<div class="foot"><button id="rep">🔊 Repetir audio</button></div>
+</div>
+
+<script>
+(function(){
+var RAW=[
+"1|M|eme||MA:*ma-má:👩,ME:*me-sa:🪑,MI:*mi-mo:🤡,MO:*mo-no:🐒,MU:*mu-la:🐴",
+"1|P|pe||PA:*pa-pá:👨,PE:*pe-lo-ta:⚽,PI:*pi-ña:🍍,PO:*po-llo:🐔,PU:*pu-ma:🐆",
+"1|S|ese||SA:*sa-po:🐸,SE:*se-mi-lla:🌱,SI:*si-lla:🪑,SO:*sol:☀️,SU:*su-ma:➕",
+"1|L|ele||LA:*la-go:🏞️,LE:*le-ón:🦁,LI:*li-bro:📖,LO:*lo-ro:🦜,LU:*lu-na:🌙",
+"2|T|te||TA:*ta-za:☕,TE:*te-lé-fo-no:📞,TI:*ti-gre:🐯,TO:*to-ro:🐂,TU:*tu-li-pán:🌷",
+"2|N|ene||NA:*na-ran-ja:🍊,NE:*ne-ne:👶,NI:*ni-do:🐣,NO:*no-che:🌃,NU:*nu-be:☁️",
+"2|D|de||DA:*da-do:🎲,DE:*de-do:👆,DI:*di-bu-jo:🖍️,DO:*do-na:🍩,DU:*dul-ce:🍬",
+"2|F|efe||FA:*fa-ro:🔦,FE:*fe-liz:😊,FI:*fi-de-o:🍜,FO:*fo-ca:🦭,FU:*fu-tu-ro:🔮",
+"3|B|be||BA:*ba-lón:🎈,BE:*be-bé:🍼,BI:*bi-ci-cle-ta:🚲,BO:*bo-ta:🥾,BU:*bu-fan-da:🧣",
+"3|V|ve||VA:*va-ca:🐄,VE:*ve-la:🕯️,VI:*vi-de-o:📹,VO:*vo-lei-bol:🏐,VU:*vu-vu-ze-la:🎺",
+"3|R|erre|al inicio de la palabra|RA:*ra-na:🐸,RE:*re-ga-lo:🎁,RI:*ri-sa:😂,RO:*ro-sa:🌹,RU:*ru-bí:💎",
+"3|J|jota||JA:*ja-bón:🧼,JE:*je-rin-ga:💉,JI:*ji-ra-fa:🦒,JO:*jo-ya:💍,JU:*ju-go:🧃",
+"4|Ñ|eñe|en medio de la palabra|ÑA:ni-*ña:👧,ÑE:ba-*ñe-ra:🛁,ÑI:ca-ri-*ñi-to:💕,ÑO:ba-*ño:🚿,ÑU:*ñu:🐃",
+"4|Y|ye||YA:*ya-te:🛥️,YE:*ye-ma:🥚,YI:*yin-yang:☯️,YO:*yo-yo:🪀,YU:*yu-ca:🥔",
+"4|LL|elle||LLA:*lla-ve:🔑,LLE:*lle-no:🥛,LLI:ga-*lli-na:🐔,LLO:*llo-ro:😢,LLU:*llu-via:🌧️",
+"4|C|ce|sonido fuerte|CA:*ca-sa:🏠,CO:*co-co:🥥,CU:*cu-cha-ra:🥄",
+"4|C|ce|sonido suave|CE:*ce-bo-lla:🧅,CI:*ci-ne:🎬",
+"5|Q|cu||QUE:*que-so:🧀,QUI:*qui-nua:🌾",
+"5|G|ge||GA:*ga-to:🐱,GO:*go-rro:🧢,GU:*gu-sa-no:🐛,GE:*ge-la-ti-na:🍮,GI:*gi-ra-sol:🌻",
+"5|GÜ|ge con diéresis||GÜE:ci-*güe-ña:🐦,GÜI:pin-*güi-no:🐧",
+"5|CH|che||CHA:*cha-ran-go:🎸,CHE:*che-que:🧾,CHI:*chi-vo:🐐,CHO:*cho-co-la-te:🍫,CHU:*chu-le-ta:🍖",
+"5|Z|zeta||ZA:*za-pa-to:👞,ZE:*ze-bra:🦓,ZO:*zo-rro:🦊,ZU:*zu-mo:🧃",
+"6|H|hache|muda: no suena|HA:*ha-da:🧚,HE:*he-la-do:🍦,HI:*hi-lo:🧵,HO:*ho-ja:🍃,HU:*hu-mo:💨",
+"6|K|ka||KA:*ka-ra-te:🥋,KE:*ké-fir:🥛,KI:*ki-lo:⚖️,KO:*ko-a-la:🐨",
+"6|X|equis||XA:e-*xa-men:📝,XE:bo-*xe-o:🥊,XI:ta-*xi:🚕,XO:sa-*xo-fón:🎷",
+"6|W|doble ve||WA:*wa-fle:🧇,WE:*web:🌐,WI:*wi-fi:📶,WO:*wok:🥘",
+"6|RR|doble erre|entre vocales|RRA:gui-ta-*rra:🎸,RRE:to-*rre:🏰,RRI:ca-*rri-to:🛒,RRO:pe-*rro:🐶,RRU:ca-*rru-sel:🎠"
+];
+var U=RAW.map(function(r){var p=r.split("|");return{lv:+p[0],l:p[1],nm:p[2],note:p[3],it:p[4].split(",").map(function(x){var q=x.split(":"),ti=0;
+var parts=q[1].split("-").map(function(s,i){if(s.charAt(0)==="*"){ti=i;return s.slice(1);}return s;});
+return{s:q[0],p:parts,ti:ti,e:q[2],w:parts.join("")};})};});
+var $=function(i){return document.getElementById(i);},S=$("stage");
+var u=0,maxU=0,teacher=false,seen={},Q=[],qi=0,locked=false,tk=0,tm=null,lastSay="",voice=null,actx=null,promptTxt="";
+
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=a[i];a[i]=a[j];a[j]=x;}return a;}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function disp(it){return it.p.map(function(s,i){return i===0?cap(s):s;}).join("-");}
+
+/* Audio */
+function pick(){if(!window.speechSynthesis)return;var v=speechSynthesis.getVoices(),pf=["es-BO","es-MX","es-US","es-ES"];
+for(var i=0;i<pf.length;i++)for(var j=0;j<v.length;j++)if(v[j].lang.replace("_","-")===pf[i]){voice=v[j];return;}
+for(var k=0;k<v.length;k++)if(v[k].lang.toLowerCase().indexOf("es")===0){voice=v[k];return;}}
+if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick;}
+function say(t,cb,keep){if(!keep)lastSay=t;if(!window.speechSynthesis){if(cb)cb();return;}
+try{speechSynthesis.cancel();var s=new SpeechSynthesisUtterance(t);s.lang=voice?voice.lang:"es-ES";if(voice)s.voice=voice;s.rate=.9;s.pitch=1.1;if(cb)s.onend=cb;speechSynthesis.speak(s);}catch(e){if(cb)cb();}}
+function tone(ok){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();(ok?[523,659,784,1047]:[392,330]).forEach(function(f,i){
+var o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+i*.13;o.type="sine";o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.13);o.start(t);o.stop(t+.14);});}catch(e){}}
+function sayThen(t,fn){var my=tk,d=false;function f(){if(d||my!==tk)return;d=true;fn();}say(t,function(){tm=setTimeout(f,800);},true);tm=setTimeout(f,7000);}
+function stars(){for(var i=0;i<14;i++){var s=document.createElement("span");s.className="star";s.textContent=i%2?"⭐":"🎉";s.style.left=(5+Math.random()*88)+"%";s.style.top=(45+Math.random()*40)+"%";s.style.animationDelay=(Math.random()*.4)+"s";S.appendChild(s);}}
+
+/* Cabecera y menú */
+function lvOpen(){return U[Math.min(maxU,U.length-1)].lv;}
+function head(){var un=U[u];$("cl").textContent="Nivel "+un.lv+" de 6";$("cc").textContent="Letra: "+un.l+(un.note?" ("+un.note+")":"");
+$("cp").textContent=Q.length&&S.dataset.ph==="B"?"Prueba de control":"Aprendo";$("bf").style.width=(u/U.length*100)+"%";
+var m=$("menu");m.innerHTML="";for(var n=1;n<=6;n++){(function(n){var b=document.createElement("button");b.className="lvb"+(n===un.lv?" cur":"");b.textContent=(n>lvOpen()&&!teacher?"🔒 ":"")+"Nivel "+n;
+b.disabled=n>lvOpen()&&!teacher;b.onclick=function(){go(U.findIndex(function(x){return x.lv===n;}));};m.appendChild(b);})(n);}
+var l=document.createElement("label");l.innerHTML='<input type="checkbox" id="tc"> Modo maestra';m.appendChild(l);$("tc").checked=teacher;$("tc").onchange=function(){teacher=this.checked;head();};}
+function reset(){tk++;clearTimeout(tm);locked=false;if(window.speechSynthesis)try{speechSynthesis.cancel();}catch(e){}}
+function go(i){reset();u=i;startA();}
+
+/* Fase A */
+function startA(){reset();var un=U[u];seen={};S.dataset.ph="A";Q=[];
+S.innerHTML='<div class="row"><div class="big">'+un.l+(un.note?'<small>'+un.note+'</small>':'')+'</div><div class="vow" id="vow"></div></div><div class="combo" id="combo">Toca una vocal 👆</div><button class="go" id="goB" disabled>¡Ir a la Prueba de Control!</button>';
+un.it.forEach(function(it,i){var b=document.createElement("button");b.className="v";b.textContent=it.s.slice(-1);b.onclick=function(){combo(i,b);};$("vow").appendChild(b);});
+$("goB").onclick=startB;head();
+say("Esta es la letra "+un.nm+". Toca cada vocal para formar las sílabas.");}
+function combo(i,b){var un=U[u],it=un.it[i],v=it.s.slice(-1);seen[i]=1;b.classList.add("done");tone(true);
+$("combo").innerHTML='<div class="eq"><span>'+un.l+'</span> + <span>'+v+'</span> = <span class="ok">'+it.s+'</span></div><div class="em">'+it.e+'</div><div class="wd">'+disp(it)+'</div>';
+var sy=it.s.toLowerCase();say("La "+un.nm+" con la "+v.toLowerCase()+", forman la sílaba... "+sy+"... "+sy+" de "+it.w+".");
+if(Object.keys(seen).length===un.it.length)$("goB").disabled=false;}
+
+/* Fase B */
+function startB(){reset();var un=U[u],n=Math.min(3,un.it.length);
+Q=shuffle(un.it).slice(0,n);qi=0;S.dataset.ph="B";viewB();}
+function viewB(){reset();var it=Q[qi],pool=[];
+U.forEach(function(x){if(x.lv===U[u].lv)x.it.forEach(function(y){if(y.s!==it.s&&pool.indexOf(y.s)<0)pool.push(y.s);});});
+var opts=shuffle([it.s].concat(shuffle(pool).slice(0,2)));
+var blank=it.p.map(function(s,i){return i===it.ti?"___":s;}).join("-");
+S.innerHTML='<div class="em">'+it.e+'</div><div class="q" id="q">'+blank+'</div><div class="opts" id="opts"></div>';
+opts.forEach(function(s){var d=document.createElement("div"),b=document.createElement("button"),e=document.createElement("button");d.className="opt";
+b.className="o";b.textContent=s;b.onclick=function(){answer(s,b);};e.className="ear";e.textContent="👂";e.setAttribute("aria-label","Escuchar "+s);
+e.onclick=function(){say(s.toLowerCase(),null,true);};d.appendChild(b);d.appendChild(e);$("opts").appendChild(d);});
+head();
+promptTxt="Escucha con atención... "+(it.ti===0?"¿Con qué sílaba empieza la palabra... ":"¿Qué sílaba falta en la palabra... ")+it.w+"? Elige la opción correcta.";
+say(promptTxt);}
+function answer(s,b){if(locked)return;var it=Q[qi],sy=it.p.join(", ");
+if(s===it.s){locked=true;b.classList.add("ok");tone(true);var q=$("q");q.textContent=it.p.join("-").toUpperCase();q.classList.add("win");stars();
+var ok="¡Excelente! "+it.w+(it.ti===0?" empieza con ":" lleva ")+it.s.toLowerCase()+". ¡Muy bien hecho!";
+sayThen(ok,function(){qi++;if(qi<Q.length)viewB();else nextUnit();});}
+else{b.classList.remove("miss");void b.offsetWidth;b.classList.add("miss");tone(false);
+say("¡Casi lo logras! Esa es la sílaba "+s.toLowerCase()+". Escucha de nuevo: "+sy+". ¡Tú puedes, inténtalo otra vez!",null,true);}}
+function nextUnit(){var prev=U[u].lv;u++;maxU=Math.max(maxU,u);
+if(u>=U.length){u=U.length-1;maxU=U.length;fin();return;}
+if(U[u].lv!==prev){reset();var my=tk;S.dataset.ph="A";S.innerHTML='<div class="em">🏆</div><div class="q">¡Nivel '+prev+' completado!</div><div class="wd">Ahora empieza el Nivel '+U[u].lv+'</div>';stars();head();
+sayThen("¡Felicidades! Completaste el nivel "+prev+". Ahora empieza el nivel "+U[u].lv+".",startA);}
+else startA();}
+function fin(){reset();S.dataset.ph="A";head();$("bf").style.width="100%";
+S.innerHTML='<div class="em">🏆🌟🏆</div><div class="q">¡Completaste la aventura!</div><div class="wd">Aprendiste las 27 letras y sílabas</div><p><button class="go" id="again">🔄 Jugar de nuevo</button></p>';stars();
+$("again").onclick=function(){maxU=0;go(0);};say("¡Felicidades! Completaste toda la aventura silábica. ¡Eres un gran lector!");}
+
+$("rep").onclick=function(){say(S.dataset.ph==="B"&&promptTxt?promptTxt:lastSay,null,true);};
+startA();
+})();
+</script>
+</body>
+</html>
